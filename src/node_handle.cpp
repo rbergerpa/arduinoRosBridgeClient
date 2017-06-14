@@ -1,10 +1,14 @@
 #include "node_handle.h"
 
-
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
+
 
 namespace ros {
   static NodeHandle* nodeHandle; // singleton
+
+  NodeHandle* getNodeHandle() {
+    return nodeHandle;
+  }
 
   NodeHandle::NodeHandle() {
     nodeHandle = this;
@@ -14,17 +18,19 @@ namespace ros {
     return _connected;
   }
 
-  void NodeHandle::initNode( byte* mac, const char* host) {
-    Serial.print("host: ");
-    Serial.println(host);
+  void NodeHandle::initNode(char *name, byte* mac, IPAddress &ip, const char* host) {
+    _name = name;
 
     if (Ethernet.begin(mac) == 0) {
-      Serial.println("Cannot initialize ethernet");
-      return;
+      Ethernet.begin(mac, ip);
     }
 
     _webSocket.begin(host, 9090);
     _webSocket.onEvent(webSocketEvent);
+
+    while (! _connected) {
+      _webSocket.loop();
+    }
   }
 
   int  NodeHandle::spinOnce() {
@@ -33,41 +39,102 @@ namespace ros {
   }
 
   void NodeHandle::handleWebsocketEvent(WStype_t type, uint8_t * payload, size_t length) {
-    Serial.print("webSocketEvent type ");
-    Serial.println((int) type);
+    switch(type) {
+    case WStype_DISCONNECTED:
+      _connected = false;
+      Serial.println("[WSc] Disconnected!\n");
+      break;
+    case WStype_CONNECTED:
+      _connected = true;
+      Serial.print("[WSc] Connected to url: ");
+      Serial.println((char *)payload);
+      break;
+    case WStype_TEXT:
+      handleMessage((char *) payload);
+      break;
+
+    default:
+      Serial.print("unhandled webSocketEvent type ");
+      Serial.println((int) type);
+    }
   }
 
-  #define MSG_SIZE 512
-  #define PUBLISH_MSG "{\"op\": \"publish\", \"topic\": \"/rosout\", \"msg\": {\"level\": %d, \"name\": \"/arduino_rosbridge\", \"topics\": [\"/rosout\"], \"msg\": \"%s\"}}"
-  void NodeHandle::log(LogLevel logLevel, const char * msg) {
-    // TODO use Jasson ?
-    char publish_json[MSG_SIZE];
+#define MSG_SIZE 512
+#define PUBLISH_MSG "{\"op\": \"publish\", \"topic\": \"/rosout\", \"msg\": {\"level\": %d, \"name\": \"%s\", \"topics\": [\"/rosout\"], \"msg\": \"%s\"}}"
+  void NodeHandle::log(LogLevel logLevel, const char * msg, const char* file, const char* function, int line) {
+    char json[MSG_SIZE];
 
-    // TODO use publish() after we support String message type
-    snprintf(publish_json, MSG_SIZE, PUBLISH_MSG, 1<<logLevel, msg);
+    // TODO use Publiher after we support String message type
+    // TODO send file, function, line
+    // TODO timestamp
+    // TODO list of topics
+    snprintf(json, MSG_SIZE, PUBLISH_MSG, 1<<logLevel, _name, msg);
+    _webSocket.sendTXT(json);
+  }
+
+  void NodeHandle::logdebug(const char* msg, const char* file, const char* function, int line) {
+    log(DEBUG, msg, file, function, line);
+  }
+
+  void NodeHandle::loginfo(const char * msg, const char* file, const char* function, int line) {
+    log(INFO, msg, file, function, line);
+  }
+
+  void NodeHandle::logwarn(const char *msg, const char* file, const char* function, int line) {
+    log(WARN, msg, file, function, line);
+  }
+
+  void NodeHandle::logerror(const char*msg, const char* file, const char* function, int line) {
+    log(ERROR, msg, file, function, line);
+  }
+
+  void NodeHandle:: logfatal(const char*msg, const char* file, const char* function, int line) {
+    log(FATAL, msg, file, function, line);
+  }
+
+#define SUBSCRIBE_MSG "{\"op\": \"subscribe\",  \"topic\": \"%s\",  \"type\": \"%s\"}"
+  void NodeHandle::subscribe(SubscriberBase* subscriber) {
+    char json[MSG_SIZE];
+
+    if (_numSubscribers == MAX_SUBSCRIBERS) {
+      return;
+    }
+
+    _subscribers[_numSubscribers++] = subscriber;
+
+    snprintf(json, MSG_SIZE, SUBSCRIBE_MSG, subscriber->getTopic(), subscriber->getMsgType());
     Serial.print("JSON: ");
-    Serial.println(publish_json);
-    _webSocket.sendTXT(publish_json);
+    Serial.println(json);
+    _webSocket.sendTXT(json);
   }
 
-  void NodeHandle::logdebug(const char* msg) {
-    log(DEBUG, msg);
+  #define TOPIC_SIZE 128
+  void NodeHandle::handleMessage(char* data) {
+    char topic[TOPIC_SIZE];
+    char* msg;
+
+    strncpy(topic, stringSearch(data, "\"topic\": \""), TOPIC_SIZE);
+    *strchr(topic, '"') = '\0';
+
+    SubscriberBase* subscriber = getSubscriber(topic);
+    if (subscriber) {
+      subscriber->handleMessage(data);
+    } else {
+      Serial.print("No subscriber found for topic: ");
+      Serial.println(topic);
+    }
   }
 
-  void NodeHandle::loginfo(const char * msg) {
-    log(INFO, msg);
-  }
+  // TODO replace this with something more efficient
+  SubscriberBase* NodeHandle::getSubscriber(char* topic) {
+    for (int i = 0; i < _numSubscribers; i++) {
+      SubscriberBase* subscriber = _subscribers[i];
+      if (strcmp(topic, subscriber->getTopic()) == 0) {
+        return subscriber;
+      }
+    }
 
-  void NodeHandle::logwarn(const char *msg) {
-    log(WARN, msg);
-  }
-
-  void NodeHandle::logerror(const char*msg) {
-    log(ERROR, msg);
-  }
-
-  void NodeHandle:: logfatal(const char*msg) {
-    log(FATAL, msg);
+    return NULL;
   }
 }
 
