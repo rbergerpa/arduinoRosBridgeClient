@@ -1,11 +1,11 @@
-#ifndef UINT16MULTIARRAY_H
-#define  UINT16MULTIARRAY_H
+#ifndef INT8MULTIARRAY_H
+#define  INT8MULTIARRAY_H
 #include "../msg.h"
 
 namespace std_msgs {
-  class Int16MultiArray : public ros::NumericArrayMsg<int16_t>, ros::IntegerBaseClass<int16_t> {
+  class Int8MultiArray : public ros::NumericArrayMsg<int8_t>, ros::IntegerBaseClass<int8_t> {
   public:
-  Int16MultiArray() : NumericArrayMsg<int16_t>("std_msgs/Int16MultiArray") {}
+  Int8MultiArray() : NumericArrayMsg<int8_t>("std_msgs/Int8MultiArray") {}
   };
 }
 
