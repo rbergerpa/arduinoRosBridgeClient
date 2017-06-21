@@ -21,6 +21,21 @@ namespace ros {
     char* _typeName;
   };
 
+  template<typename ValueT>
+    class FloatBaseClass {
+  protected:
+    ValueT parseValue(const char* str) {
+      return atof(str);
+    }
+  };
+
+  template<typename ValueT>
+    class IntegerBaseClass {
+  protected:
+    ValueT parseValue(const char* str) {
+      return atof(str);
+    }
+  };
 
   template<typename ValueT>
     class NumericArrayMsg : public Msg {
@@ -29,7 +44,7 @@ namespace ros {
 
   NumericArrayMsg(char* typeName) : Msg(typeName) {}
 
-    virtual ValueT parseValue(const char* str) = 0;
+    ValueT parseValue(const char* str);
 
     virtual int deserialize(char* json) {
       char* buf = stringSearch(json, "\"data\": [");
