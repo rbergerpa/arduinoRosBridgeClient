@@ -1,4 +1,7 @@
 #include "node_handle.h"
+#include <ArduinoJson.h>
+
+#define JSON_BUFFER_SIZE 500
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 
@@ -103,22 +106,27 @@ namespace ros {
     _subscribers[_numSubscribers++] = subscriber;
 
     snprintf(json, MSG_SIZE, SUBSCRIBE_MSG, subscriber->getTopic(), subscriber->getMsgType());
-    Serial.print("JSON: ");
-    Serial.println(json);
     _webSocket.sendTXT(json);
   }
 
-  #define TOPIC_SIZE 128
-  void NodeHandle::handleMessage(char* data) {
-    char topic[TOPIC_SIZE];
-    char* msg;
+  void NodeHandle::handleMessage(char* msg) {
+    StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
 
-    strncpy(topic, stringSearch(data, "\"topic\": \""), TOPIC_SIZE);
-    *strchr(topic, '"') = '\0';
+    Serial.print("msg: ");
+    Serial.println(msg);
+
+    JsonObject& json = jsonBuffer.parseObject(msg);
+    Serial.print("parsed: ");
+    json.printTo(Serial);
+    Serial.println();
+
+    const char* topic = json["topic"];
+    Serial.print("topic: ");
+    Serial.println(topic);
 
     SubscriberBase* subscriber = getSubscriber(topic);
     if (subscriber) {
-      subscriber->handleMessage(data);
+    subscriber->handleMessage(json);
     } else {
       Serial.print("No subscriber found for topic: ");
       Serial.println(topic);
@@ -126,7 +134,7 @@ namespace ros {
   }
 
   // TODO replace this with something more efficient
-  SubscriberBase* NodeHandle::getSubscriber(char* topic) {
+  SubscriberBase* NodeHandle::getSubscriber(const char* topic) {
     for (int i = 0; i < _numSubscribers; i++) {
       SubscriberBase* subscriber = _subscribers[i];
       if (strcmp(topic, subscriber->getTopic()) == 0) {

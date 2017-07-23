@@ -1,5 +1,6 @@
 #ifndef ROS_MSG_H
 #define ROS_MSG_H
+#include <ArduinoJson.h>
 #include <arduino.h> // TODO remove after debugging
 
 #define MAX_ARRAY_SIZE 32
@@ -15,52 +16,31 @@ namespace ros {
 
     const char* getType();
 
-    virtual int deserialize(char* json) = 0;
+    virtual int deserialize(JsonObject& json) = 0;
 
   private:
     char* _typeName;
   };
 
-  template<typename ValueT>
-    class FloatBaseClass {
-  protected:
-    ValueT parseValue(const char* str) {
-      return atof(str);
-    }
-  };
-
-  template<typename ValueT>
-    class IntegerBaseClass {
-  protected:
-    ValueT parseValue(const char* str) {
-      return atof(str);
-    }
-  };
-
-  template<typename ValueT>
+  template<typename ValueT, typename ParseT>
     class NumericArrayMsg : public Msg {
   public:
     ValueT data[MAX_ARRAY_SIZE];
 
   NumericArrayMsg(char* typeName) : Msg(typeName) {}
+    virtual int deserialize(JsonObject& json) {
+      JsonVariant dataJSON = json["msg"]["data"];
+      Serial.print("dataJSON: ");
+      dataJSON.printTo(Serial);
+      Serial.println();
 
-    ValueT parseValue(const char* str);
+      data_length = dataJSON.size();
+      Serial.print("data_length: ");
+      Serial.print(data_length);
+      Serial.println();
 
-    virtual int deserialize(char* json) {
-      char* buf = stringSearch(json, "\"data\": [");
-      data_length = 0;
-
-      while (*buf != ']' && data_length < MAX_ARRAY_SIZE) {
-        data[data_length] = atof(buf);
-        data_length++;
-
-        while (*buf != ',' && *buf != ']') {
-          buf++;
-        }
-
-        while (*buf == ',' || *buf == ' ') {
-          buf++;
-        }
+      for (int i = 0; i < data_length; i++) {
+        data[i] = (ParseT) dataJSON[i];
       }
 
       return 1;

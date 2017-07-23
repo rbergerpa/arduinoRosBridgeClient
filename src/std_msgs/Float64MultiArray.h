@@ -3,9 +3,9 @@
 #include "../msg.h"
 
 namespace std_msgs {
-  class Float64MultiArray : public ros::NumericArrayMsg<double>, ros::FloatBaseClass<double> {
+  class Float64MultiArray : public ros::NumericArrayMsg<double, double> {
   public:
-  Float64MultiArray() : NumericArrayMsg<double>("std_msgs/Float64MultiArray") {}
+  Float64MultiArray() : NumericArrayMsg<double, double>("std_msgs/Float64MultiArray") {}
   };
 }
 

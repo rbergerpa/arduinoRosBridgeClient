@@ -43,7 +43,7 @@ namespace ros {
 
     void handleMessage(char* msg);
 
-    SubscriberBase* getSubscriber(char* topic);
+    SubscriberBase* getSubscriber(const char* topic);
   };
 
   NodeHandle* getNodeHandle();

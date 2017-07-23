@@ -3,9 +3,9 @@
 #include "../msg.h"
 
 namespace std_msgs {
-  class Int64MultiArray : public ros::NumericArrayMsg<int64_t>, ros::IntegerBaseClass<int64_t> {
+  class Int64MultiArray : public ros::NumericArrayMsg<int64_t, long> {
   public:
-  Int64MultiArray() : NumericArrayMsg<int64_t>("std_msgs/Int64MultiArray") {}
+  Int64MultiArray() : NumericArrayMsg<int64_t, long>("std_msgs/Int64MultiArray") {}
   };
 }
 

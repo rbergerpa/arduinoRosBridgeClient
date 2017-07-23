@@ -1,5 +1,6 @@
 #ifndef SUBSCRIBER_H
 #define SUBSCRIBER_H
+#include <ArduinoJson.h>
 #include "msg.h"
 
 namespace ros {
@@ -7,7 +8,7 @@ namespace ros {
   public:
     SubscriberBase(const char* topic);
 
-    void handleMessage(char *data);
+    void handleMessage(JsonObject& json);
 
     const char* getMsgType();
     const char* getTopic();
@@ -17,7 +18,7 @@ namespace ros {
     void registerSubscriber();
     Msg* newMessage(const char* msgType);
     virtual void callback() = 0;
-    virtual void deserialize(char* msgJSON) = 0;
+    virtual void deserialize(JsonObject& json) = 0;
   private:
     const char* _topic;
   };
@@ -34,8 +35,8 @@ namespace ros {
       _msgType = _msg.getType();
     }
 
-    virtual void deserialize(char* msgJSON) {
-      _msg.deserialize(msgJSON);
+    virtual void deserialize(JsonObject& json) {
+      _msg.deserialize(json);
     }
 
     virtual void callback() {

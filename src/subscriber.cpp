@@ -17,24 +17,9 @@ namespace ros {
   }
 
   // modifies data, to avoid allocating a copy
-  void SubscriberBase::handleMessage(char *data) {
-    char* msgJSON = stringSearch(data, "\"msg\": ");
-
-    // Terminate msgJSON after closing brace
-    char* brace = strchr(msgJSON, '{') + 1;
-    int braceLevel = 1;
-    for (; braceLevel > 0; brace++) {
-      char ch = *brace;
-      if (ch == '{') {
-        braceLevel++;
-      } else if (ch == '}') {
-        braceLevel--;
-      }
-    }
-    *brace = '\0';
-
-    deserialize(msgJSON);
-    callback();
+  void SubscriberBase::handleMessage(JsonObject& json) {
+       deserialize(json);
+       callback();
   }
 
   Msg* SubscriberBase::newMessage(const char* msgType) {
