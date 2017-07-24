@@ -1,8 +1,6 @@
 #include "node_handle.h"
 #include <ArduinoJson.h>
 
-#define JSON_BUFFER_SIZE 500
-
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 
 
@@ -67,7 +65,7 @@ namespace ros {
   void NodeHandle::log(LogLevel logLevel, const char * msg, const char* file, const char* function, int line) {
     char json[MSG_SIZE];
 
-    // TODO use Publiher after we support String message type
+    // TODO use ArduionoJSON
     // TODO send file, function, line
     // TODO timestamp
     // TODO list of topics
@@ -96,16 +94,16 @@ namespace ros {
   }
 
 #define SUBSCRIBE_MSG "{\"op\": \"subscribe\",  \"topic\": \"%s\",  \"type\": \"%s\"}"
-  void NodeHandle::subscribe(SubscriberBase* subscriber) {
+  void NodeHandle::subscribe(SubscriberBase& subscriber) {
     char json[MSG_SIZE];
 
     if (_numSubscribers == MAX_SUBSCRIBERS) {
       return;
     }
 
-    _subscribers[_numSubscribers++] = subscriber;
+    _subscribers[_numSubscribers++] = &subscriber;
 
-    snprintf(json, MSG_SIZE, SUBSCRIBE_MSG, subscriber->getTopic(), subscriber->getMsgType());
+    snprintf(json, MSG_SIZE, SUBSCRIBE_MSG, subscriber.getTopic(), subscriber.getMsgType());
     _webSocket.sendTXT(json);
   }
 
@@ -131,6 +129,31 @@ namespace ros {
       Serial.print("No subscriber found for topic: ");
       Serial.println(topic);
     }
+  }
+
+  void NodeHandle::advertise(Publisher& publisher) {
+    StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
+    char buffer[JSON_BUFFER_SIZE];
+
+    JsonObject& root = jsonBuffer.createObject();
+    root["op"] = "advertise";
+    root["topic"] = publisher.getTopic();
+    root["type"] = publisher.getMsgType();
+
+    int size = root.printTo(buffer, JSON_BUFFER_SIZE);
+    Serial.print("buffer: ");
+    Serial.println(buffer);
+    _webSocket.sendTXT(buffer, size);
+  }
+
+  void NodeHandle::publish(JsonObject& json) {
+    char buffer[JSON_BUFFER_SIZE];
+
+    int size = json.printTo(buffer, JSON_BUFFER_SIZE);
+    Serial.print("buffer: ");
+    Serial.println(buffer);
+
+    _webSocket.sendTXT(buffer, size);
   }
 
   // TODO replace this with something more efficient

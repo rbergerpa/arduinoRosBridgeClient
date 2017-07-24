@@ -6,11 +6,14 @@
 #include <WebSockets.h>
 #include <WebSocketsClient.h>
 #include "subscriber.h"
+#include "publisher.h"
 
 #define MAX_SUBSCRIBERS 20
+#define JSON_BUFFER_SIZE 500
 
 namespace ros {
   class NodeHandle {
+    friend class Publisher;
   public:
     NodeHandle();
 
@@ -27,8 +30,8 @@ namespace ros {
     void logerror(const char*msg, const char* file="", const char* function = "", int line = 0);
     void logfatal(const char*msg, const char* file="", const char* function = "", int line = 0);
 
-    void subscribe(SubscriberBase* subscriber);
-
+    void subscribe(SubscriberBase& subscriber);
+    void advertise(Publisher& publisher);
 
   private:
     WebSocketsClient _webSocket;
@@ -44,6 +47,8 @@ namespace ros {
     void handleMessage(char* msg);
 
     SubscriberBase* getSubscriber(const char* topic);
+
+    void publish(JsonObject& json);
   };
 
   NodeHandle* getNodeHandle();

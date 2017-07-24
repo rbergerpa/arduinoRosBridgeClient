@@ -16,6 +16,7 @@ namespace ros {
 
     const char* getType();
 
+    virtual int serialize(JsonObject& json) = 0;
     virtual int deserialize(JsonObject& json) = 0;
 
   private:
@@ -23,21 +24,38 @@ namespace ros {
   };
 
   template<typename ValueT, typename ParseT>
-    class NumericArrayMsg : public Msg {
+    class NumericMsg : public Msg {
   public:
-    ValueT data[MAX_ARRAY_SIZE];
+    ValueT data;
 
-  NumericArrayMsg(char* typeName) : Msg(typeName) {}
+  NumericMsg(char* typeName) : Msg(typeName) {}
     virtual int deserialize(JsonObject& json) {
       JsonVariant dataJSON = json["msg"]["data"];
-      Serial.print("dataJSON: ");
-      dataJSON.printTo(Serial);
-      Serial.println();
+
+      data_length = 1;
+      data = (ParseT) dataJSON;
+
+      return 1;
+    }
+
+    virtual int serialize(JsonObject& json) {
+      json["data"] = data;
+    }
+  };
+
+  template<typename ValueT, typename ParseT>
+    class NumericArrayMsg : public Msg {
+  public:
+    ValueT *data;
+
+    NumericArrayMsg(char* typeName) : Msg(typeName) {
+      data = static_data;
+    }
+
+    virtual int deserialize(JsonObject& json) {
+      JsonVariant dataJSON = json["msg"]["data"];
 
       data_length = dataJSON.size();
-      Serial.print("data_length: ");
-      Serial.print(data_length);
-      Serial.println();
 
       for (int i = 0; i < data_length; i++) {
         data[i] = (ParseT) dataJSON[i];
@@ -45,6 +63,20 @@ namespace ros {
 
       return 1;
     }
+
+    virtual int serialize(JsonObject& json) {
+      JsonArray& array = json.createNestedArray("data");
+      for (int i = 0; i < data_length; i++) {
+        array.add(data[i]);
+      }
+
+      JsonObject& layout = json.createNestedObject("layout");
+      layout.createNestedArray("dim");
+      layout["data_offset"] = 0;
+    }
+
+  private:
+    ValueT static_data[MAX_ARRAY_SIZE];
   };
 }
 

@@ -8,15 +8,14 @@ namespace ros {
     _topic = topic;
   }
 
-  const char * SubscriberBase::SubscriberBase::getMsgType() {
+  const char * SubscriberBase::getMsgType() {
     return _msgType;
   }
 
-  const char * SubscriberBase::SubscriberBase::getTopic() {
+  const char * SubscriberBase::getTopic() {
     return _topic;
   }
 
-  // modifies data, to avoid allocating a copy
   void SubscriberBase::handleMessage(JsonObject& json) {
        deserialize(json);
        callback();

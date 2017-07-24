@@ -5,10 +5,9 @@
 
 namespace ros {
   class SubscriberBase {
+    friend class NodeHandle;
   public:
     SubscriberBase(const char* topic);
-
-    void handleMessage(JsonObject& json);
 
     const char* getMsgType();
     const char* getTopic();
@@ -20,6 +19,7 @@ namespace ros {
     virtual void callback() = 0;
     virtual void deserialize(JsonObject& json) = 0;
   private:
+    void handleMessage(JsonObject& json);
     const char* _topic;
   };
 
