@@ -141,8 +141,8 @@ namespace ros {
     root["type"] = publisher.getMsgType();
 
     int size = root.printTo(buffer, JSON_BUFFER_SIZE);
-    Serial.print("buffer: ");
-    Serial.println(buffer);
+    // Serial.print("buffer: ");
+    // Serial.println(buffer);
     _webSocket.sendTXT(buffer, size);
   }
 
@@ -150,8 +150,8 @@ namespace ros {
     char buffer[JSON_BUFFER_SIZE];
 
     int size = json.printTo(buffer, JSON_BUFFER_SIZE);
-    Serial.print("buffer: ");
-    Serial.println(buffer);
+    // Serial.print("buffer: ");
+    // Serial.println(buffer);
 
     _webSocket.sendTXT(buffer, size);
   }
