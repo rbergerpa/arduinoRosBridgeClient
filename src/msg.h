@@ -29,6 +29,7 @@ namespace ros {
     ValueT data;
 
   NumericMsg(const char* typeName) : Msg(typeName) {}
+  public:
     virtual int deserialize(JsonObject& json) {
       JsonVariant dataJSON = json["msg"]["data"];
 
@@ -38,9 +39,9 @@ namespace ros {
       return 1;
     }
 
-  private:
     virtual int serialize(JsonObject& json) {
       json["data"] = data;
+      return 1;
     }
   };
 
@@ -52,9 +53,6 @@ namespace ros {
     NumericArrayMsg(const char* typeName) : Msg(typeName) {
       data = static_data;
     }
-
-  private:
-    ValueT static_data[MAX_ARRAY_SIZE];
 
     virtual int deserialize(JsonObject& json) {
       JsonVariant dataJSON = json["msg"]["data"];
@@ -78,6 +76,9 @@ namespace ros {
       layout.createNestedArray("dim");
       layout["data_offset"] = 0;
     }
+
+  private:
+    ValueT static_data[MAX_ARRAY_SIZE];
   };
 }
 
