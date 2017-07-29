@@ -17,7 +17,7 @@ namespace ros {
   public:
     NodeHandle();
 
-    void initNode(char *name, byte* mac, IPAddress  &ip, const char* host);
+    void initNode(const char *name, byte* mac, IPAddress  &ip, const char* host);
 
     int spinOnce();
 
@@ -36,7 +36,7 @@ namespace ros {
   private:
     WebSocketsClient _webSocket;
     boolean _connected = false;
-    char* _name;
+    const char* _name;
     int _numSubscribers = 0;
     SubscriberBase* _subscribers[MAX_SUBSCRIBERS];
 

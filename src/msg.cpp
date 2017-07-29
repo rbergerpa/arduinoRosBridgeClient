@@ -2,7 +2,7 @@
 #include <string.h>
 
 namespace ros {
-  Msg::Msg(char* typeName) {
+  Msg::Msg(const char* typeName) {
     _typeName = typeName;
   }
 

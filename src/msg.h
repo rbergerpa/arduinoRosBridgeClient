@@ -12,7 +12,7 @@ namespace ros {
   class Msg {
   public:
     int data_length;
-    Msg(char* typeName);
+    Msg(const char* typeName);
 
     const char* getType();
 
@@ -20,7 +20,7 @@ namespace ros {
     virtual int deserialize(JsonObject& json) = 0;
 
   private:
-    char* _typeName;
+    const char* _typeName;
   };
 
   template<typename ValueT, typename ParseT>
@@ -28,7 +28,7 @@ namespace ros {
   public:
     ValueT data;
 
-  NumericMsg(char* typeName) : Msg(typeName) {}
+  NumericMsg(const char* typeName) : Msg(typeName) {}
     virtual int deserialize(JsonObject& json) {
       JsonVariant dataJSON = json["msg"]["data"];
 
@@ -49,7 +49,7 @@ namespace ros {
   public:
     ValueT *data;
 
-    NumericArrayMsg(char* typeName) : Msg(typeName) {
+    NumericArrayMsg(const char* typeName) : Msg(typeName) {
       data = static_data;
     }
 

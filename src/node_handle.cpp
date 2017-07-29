@@ -19,7 +19,7 @@ namespace ros {
     return _connected;
   }
 
-  void NodeHandle::initNode(char *name, byte* mac, IPAddress &ip, const char* host) {
+  void NodeHandle::initNode(const char *name, byte* mac, IPAddress &ip, const char* host) {
     _name = name;
 
     if (Ethernet.begin(mac) == 0) {
