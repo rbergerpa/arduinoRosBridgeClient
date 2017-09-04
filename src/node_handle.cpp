@@ -114,9 +114,9 @@ namespace ros {
     Serial.println(msg);
 
     JsonObject& json = jsonBuffer.parseObject(msg);
-    Serial.print("parsed: ");
-    json.printTo(Serial);
-    Serial.println();
+    // Serial.print("parsed: ");
+    //json.printTo(Serial);
+    //Serial.println();
 
     const char* topic = json["topic"];
     Serial.print("topic: ");
@@ -150,8 +150,8 @@ namespace ros {
     char buffer[JSON_BUFFER_SIZE];
 
     int size = json.printTo(buffer, JSON_BUFFER_SIZE);
-    // Serial.print("buffer: ");
-    // Serial.println(buffer);
+     Serial.print("buffer: ");
+     Serial.println(buffer);
 
     _webSocket.sendTXT(buffer, size);
   }
