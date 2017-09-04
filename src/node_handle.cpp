@@ -150,13 +150,12 @@ namespace ros {
     char buffer[JSON_BUFFER_SIZE];
 
     int size = json.printTo(buffer, JSON_BUFFER_SIZE);
-     Serial.print("buffer: ");
-     Serial.println(buffer);
+//     Serial.print("buffer: ");
+//     Serial.println(buffer);
 
     _webSocket.sendTXT(buffer, size);
   }
 
-  // TODO replace this with something more efficient
   SubscriberBase* NodeHandle::getSubscriber(const char* topic) {
     for (int i = 0; i < _numSubscribers; i++) {
       SubscriberBase* subscriber = _subscribers[i];
