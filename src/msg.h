@@ -1,7 +1,6 @@
 #ifndef ROS_MSG_H
 #define ROS_MSG_H
 #include <ArduinoJson.h>
-#include <Arduino.h> // TODO remove after debugging
 
 #define MAX_ARRAY_SIZE 32
 

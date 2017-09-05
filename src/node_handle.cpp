@@ -3,7 +3,6 @@
 
 void webSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 
-
 namespace ros {
   static NodeHandle* nodeHandle; // singleton
 
@@ -60,17 +59,27 @@ namespace ros {
     }
   }
 
-#define MSG_SIZE 512
 #define PUBLISH_MSG "{\"op\": \"publish\", \"topic\": \"/rosout\", \"msg\": {\"level\": %d, \"name\": \"%s\", \"topics\": [\"/rosout\"], \"msg\": \"%s\"}}"
-  void NodeHandle::log(LogLevel logLevel, const char * msg, const char* file, const char* function, int line) {
-    char json[MSG_SIZE];
+  void NodeHandle::log(LogLevel logLevel, const char* msg, const char* file, const char* function, int line) {
+    StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    root["op"] = "publish";
+    root["topic"] = "/rosout";
 
-    // TODO use ArduionoJSON
+    JsonObject& msgJson = root.createNestedObject("msg");
+    // Add a blank time stamp so Rosbridge will fill it in
+    JsonObject& header = msgJson.createNestedObject("header");
+    header.createNestedObject("stamp");
+
     // TODO send file, function, line
-    // TODO timestamp
     // TODO list of topics
-    snprintf(json, MSG_SIZE, PUBLISH_MSG, 1<<logLevel, _name, msg);
-    _webSocket.sendTXT(json);
+    ///    snprintf(json, MSG_SIZE, PUBLISH_MSG, 1<<logLevel, _name, msg);
+    //    _webSocket.sendTXT(json);
+    msgJson["level"] = 1<<logLevel;
+    msgJson["name"] = _name;
+    msgJson["msg"] = msg;
+
+    publish(root);
   }
 
   void NodeHandle::logdebug(const char* msg, const char* file, const char* function, int line) {
@@ -93,6 +102,8 @@ namespace ros {
     log(FATAL, msg, file, function, line);
   }
 
+#define MSG_SIZE 512
+
 #define SUBSCRIBE_MSG "{\"op\": \"subscribe\",  \"topic\": \"%s\",  \"type\": \"%s\"}"
   void NodeHandle::subscribe(SubscriberBase& subscriber) {
     char json[MSG_SIZE];
@@ -103,6 +114,7 @@ namespace ros {
 
     _subscribers[_numSubscribers++] = &subscriber;
 
+    // TODO use arduinoJson
     snprintf(json, MSG_SIZE, SUBSCRIBE_MSG, subscriber.getTopic(), subscriber.getMsgType());
     _webSocket.sendTXT(json);
   }
@@ -110,8 +122,8 @@ namespace ros {
   void NodeHandle::handleMessage(char* msg) {
     StaticJsonBuffer<JSON_BUFFER_SIZE> jsonBuffer;
 
-    Serial.print("msg: ");
-    Serial.println(msg);
+//    Serial.print("msg: ");
+//    Serial.println(msg);
 
     JsonObject& json = jsonBuffer.parseObject(msg);
     // Serial.print("parsed: ");
@@ -119,8 +131,8 @@ namespace ros {
     //Serial.println();
 
     const char* topic = json["topic"];
-    Serial.print("topic: ");
-    Serial.println(topic);
+//    Serial.print("topic: ");
+//    Serial.println(topic);
 
     SubscriberBase* subscriber = getSubscriber(topic);
     if (subscriber) {
