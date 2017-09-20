@@ -4,10 +4,15 @@
 namespace ros {
   Msg::Msg(const char* typeName) {
     _typeName = typeName;
+    _includeHeader = false;
   }
 
   const char* Msg::getType() {
     return _typeName;
+  }
+
+  bool Msg::includeHeader() {
+    return _includeHeader;
   }
 }
 

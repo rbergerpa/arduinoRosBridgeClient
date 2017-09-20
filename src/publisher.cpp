@@ -18,9 +18,12 @@ namespace ros {
     root["type"] = _msgType;
 
     JsonObject& msgJson = root.createNestedObject("msg");
-    // Add a blank time stamp so Rosbridge will fill it in
-    JsonObject& header = msgJson.createNestedObject("header");
-    header.createNestedObject("stamp");
+    if (msg->includeHeader()) {
+      // Add a blank time stamp so Rosbridge will fill it in
+      JsonObject& header = msgJson.createNestedObject("header");
+      header.createNestedObject("stamp");
+    }
+
     msg->serialize(msgJson);
 
     getNodeHandle()->publish(root);

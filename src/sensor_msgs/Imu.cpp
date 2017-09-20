@@ -15,6 +15,7 @@ namespace sensor_msgs {
     linear_acceleration.y = 0.0;
     linear_acceleration.z = 0.0;
 
+    _includeHeader = true;
   }
 
   int Imu::serialize(JsonObject& json) {

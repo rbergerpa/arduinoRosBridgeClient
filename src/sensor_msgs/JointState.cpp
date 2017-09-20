@@ -3,6 +3,7 @@
 namespace sensor_msgs {
   JointState::JointState() : Msg("sensor_msgs/JointState") {
     data_length = 0;
+    _includeHeader = true;
   }
 
   int JointState::serialize(JsonObject& json) {

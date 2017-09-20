@@ -15,8 +15,13 @@ namespace ros {
 
     const char* getType();
 
+    bool includeHeader();
+
     virtual int serialize(JsonObject& json) = 0;
     virtual int deserialize(JsonObject& json) = 0;
+
+  protected:
+    bool _includeHeader;
 
   private:
     const char* _typeName;
