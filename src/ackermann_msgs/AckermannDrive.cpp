@@ -1,4 +1,5 @@
 #include "AckermannDrive.h"
+#include <Arduino.h>
 
 namespace ackermann_msgs {
 
@@ -19,10 +20,12 @@ namespace ackermann_msgs {
   }
 
   int AckermannDrive:: deserialize(JsonObject& json) {
-    steering_angle = json["steering_angle"];
-    steering_angle_velocity = json["steering_angle_velocity"];
-    speed = json["speed"];
-    acceleration = json["acceleration"];;
-    jerk = json["jerk"];
+    JsonVariant msgJson = json["msg"];
+
+    steering_angle = msgJson["steering_angle"];
+    steering_angle_velocity = msgJson["steering_angle_velocity"];
+    speed = msgJson["speed"];
+    acceleration = msgJson["acceleration"];;
+    jerk = msgJson["jerk"];
   }
 }
